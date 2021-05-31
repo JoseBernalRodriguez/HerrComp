@@ -41,7 +41,7 @@ void ResultAccumulation(int val, int pid, int np, int N)
 		MPI_Recv(&val, 1, MPI_INT, ipid, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		total += val;
 		}
-		std::cout << 4.0*total/N << "\n";
+		std::cout << np << "\n" << 4.0*total/N << "\n";
 	}
 }
 
