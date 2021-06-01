@@ -5,7 +5,7 @@
 #include<mpi.h>
 
 int MontCarloPi( int n, int seed);
-void ResultAccumulation(int x, int pi, int np, int N);
+double ResultAccumulation(int x, int pi, int np, int N);
 double maximum( std::vector<double> input );
 
 int main(int argc, char * argv[])
@@ -25,22 +25,40 @@ int main(int argc, char * argv[])
 	double init_time = MPI_Wtime();
 	
 	int localresult = MontCarloPi(localsample,CommSeed*np+ pid);
-	ResultAccumulation(localresult, pid, np, N);
+	double total_result = ResultAccumulation(localresult, pid, np, N);
 
 	double final_time = MPI_Wtime();
-	double time = final_time - init_time;
-	
+	double local_time = final_time - init_time;
+
+	std::vector<double> times(np);
+
+	if(pid != 0)
+	{
+		MPI_Send(&local_time, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+	} else {
+		times[0]=local_time;
+		for(int ipid=1; ipid < np; ++ipid)
+		{
+		MPI_Recv(&times[ipid], 1, MPI_INT, ipid, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		}
+		double total_time= maximum(times);
+		std::cout << total_result << "\t" << np << "\t" << total_time << "\n";
+
+	}
+
+
 
 	MPI_Finalize();
 
 }
 
-void ResultAccumulation(int val, int pid, int np, int N)
+double ResultAccumulation(int val, int pid, int np, int N)
 {
 	int tag=0;
 	if(pid != 0)
 	{
 		MPI_Send(&val, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		return 0;
 	}else {
 		double total = val;
 		for (int ipid = 1; ipid < np; ++ipid)
@@ -48,7 +66,7 @@ void ResultAccumulation(int val, int pid, int np, int N)
 		MPI_Recv(&val, 1, MPI_INT, ipid, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		total += val;
 		}
-		std::cout << np << "\n" << 4.0*total/N << "\n";
+		return 4.0*total/N;
 	}
 }
 
