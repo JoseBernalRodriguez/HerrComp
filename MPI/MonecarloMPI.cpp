@@ -13,7 +13,7 @@ int main(int argc, char * argv[])
 
 	MPI_Init(&argc, &argv);
 	int N = std::atoi(argv[1]); //total number of samples
-	int CommSeed = std::atoi(argv[2]); //This allow us to change in the execution the set of seeds to be used
+	int CommSeed = 1; //This allow us to change in the execution the set of seeds to be used
 	
 	int pid; //process id
 	int np; //number of processes
