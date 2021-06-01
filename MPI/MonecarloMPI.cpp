@@ -1,16 +1,19 @@
 #include<iostream>
 #include<cmath>
 #include<random>
+#include<vector>
 #include<mpi.h>
+
 int MontCarloPi( int n, int seed);
 void ResultAccumulation(int x, int pi, int np, int N);
+double maximum( std::vector<double> input );
 
 int main(int argc, char * argv[])
 {	
 
 	MPI_Init(&argc, &argv);
 	int N = std::atoi(argv[1]); //total number of samples
-    int CommSeed = std::atoi(argv[2]); //This allow us to change in the execution the set of seeds to be used
+	int CommSeed = std::atoi(argv[2]); //This allow us to change in the execution the set of seeds to be used
 	
 	int pid; //process id
 	int np; //number of processes
@@ -18,11 +21,15 @@ int main(int argc, char * argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &pid);
 
 	int localsample = (int)(N/np);
-
+	
+	double init_time = MPI_Wtime();
+	
 	int localresult = MontCarloPi(localsample,CommSeed*np+ pid);
 	ResultAccumulation(localresult, pid, np, N);
 
-
+	double final_time = MPI_Wtime();
+	double time = final_time - init_time;
+	
 
 	MPI_Finalize();
 
@@ -58,4 +65,16 @@ int MontCarloPi( int n, int seed)
 		{ count++; }
 	}
 	return count;
+}
+double maximum( std::vector<double> a )
+{
+	double result=a[0];
+	int size= a.size();
+	
+	for( int ii=0; ii < size; ii++)
+	{
+		if( a[ii] > result )
+		{ result= a[ii];}
+	}
+	return result;
 }
